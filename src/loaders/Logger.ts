@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === 'development') {
 } else {
   transports.push(
     new winston.transports.File({ filename: `${appRoot}/logs/error.log`, level: 'error' }),
-    new winston.transports.File({ filename: `${appRoot}/logs/combined.log` }),
+    new winston.transports.File({ filename: `${appRoot}/logs/combined.log`, level: config.logs.level }),
   );
 }
 
@@ -26,5 +26,11 @@ const LoggerInstance = winston.createLogger({
   ),
   transports,
 });
+
+LoggerInstance.stream = {
+  write(message: string) {
+    LoggerInstance.info(message);
+  },
+};
 
 export default LoggerInstance;
