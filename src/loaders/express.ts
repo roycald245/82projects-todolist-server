@@ -23,7 +23,5 @@ export default ({ app }: { app: express.Application }) => {
 
   app.use(routes());
 
-  console.info('Express loader finished.');
-  // Return the express app
   return app;
 };
