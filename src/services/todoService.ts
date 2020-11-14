@@ -19,5 +19,14 @@ export const removeTodo = async (id: string) => {
   TodoModel.findOneAndDelete({ _id: id }).then((error: Error) => {
     if (error) return Logger.error(error);
     return Logger.info(`Removed Todo with id:${id} successfuly`);
-  }).catch((error: Error) => Logger.error(error));
+  });
+};
+
+export const updateTodo = async ({ id, name, description }
+  : { id: string, name: string, description: string }) => {
+  Logger.info(`Updating Todo ${id}`);
+  TodoModel.findByIdAndUpdate(id, { name, description }).then((error: Error) => {
+    if (error) return Logger.error(error);
+    return Logger.info(`Updated ${id} Successfully`);
+  });
 };

@@ -1,8 +1,8 @@
 import {
   Router, Request, Response, NextFunction,
 } from 'express';
-import { addTodo, removeTodo } from '../../services/todoService';
-import Logger from '../../loaders/Logger';
+import { celebrate, Joi } from 'celebrate';
+import { addTodo, removeTodo, updateTodo } from '../../services/todoService';
 
 const route = Router();
 export default (app: Router) => {
@@ -10,9 +10,16 @@ export default (app: Router) => {
 
   route.post(
     '/',
+    celebrate({
+      body: Joi.object({
+        name: Joi.string().required(),
+        id: Joi.string().required(),
+        description: Joi.string(),
+      }),
+    }),
     (req: Request, res: Response, next: NextFunction) => {
       try {
-        addTodo({ name: req.body.name, description: req.body.description }).then(
+        addTodo({ name: req.body.name, description: req.body.description || '' }).then(
           (response) => {
             res.status(200).send(response);
           },
@@ -23,17 +30,35 @@ export default (app: Router) => {
     },
   );
 
-  route.delete('/', (req: Request, res: Response, next: NextFunction) => {
-    try {
-      removeTodo(req.body.id).then(() => res.status(200).send());
-    } catch (e) {
-      return next(e);
-    }
-  });
+  route.delete('/',
+    celebrate({
+      body: Joi.object({
+        id: Joi.string().required(),
+      }),
+    }),
+    (req: Request, res: Response, next: NextFunction) => {
+      try {
+        removeTodo(req.body.id).then(() => res.status(200).send());
+      } catch (e) {
+        return next(e);
+      }
+    });
 
-  route.put((req: Request, res: Response, next: NextFunction) => {
-
-  });
+  route.put('/',
+    celebrate({
+      body: Joi.object({
+        name: Joi.string().required(),
+        id: Joi.string().required(),
+        description: Joi.string(),
+      }),
+    }), (req: Request, res: Response, next: NextFunction) => {
+      try {
+        updateTodo({ id: req.body.id, name: req.body.name, description: req.body.description || '' })
+          .then(() => res.status(200).send());
+      } catch (e) {
+        return next(e);
+      }
+    });
 
   route.get('/:id', (req: Request, res: Response) => {
     res.send('hi');
