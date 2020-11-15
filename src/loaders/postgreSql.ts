@@ -8,4 +8,6 @@ export default async () => {
   pool.on('error', (error: Error) => {
     Logger.error(`Unexpected error on idle client: ${error}`);
   });
+
+  return pool;
 };
