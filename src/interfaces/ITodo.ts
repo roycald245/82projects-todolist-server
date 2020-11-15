@@ -1,6 +1,6 @@
-export interface IUser {
+export interface ITodo {
   _id: string;
   name: string;
   description: string;
-  completed: boolean;
+  isComplete: boolean;
 }

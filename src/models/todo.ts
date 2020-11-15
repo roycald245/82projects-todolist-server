@@ -13,6 +13,11 @@ const Todo = new mongoose.Schema(
       type: String,
     },
 
+    isComplete: {
+      type: Boolean,
+      index: true,
+    },
+
   },
   { timestamps: true },
 );

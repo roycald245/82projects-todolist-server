@@ -1,11 +1,11 @@
-import TodoModel from "../models/todo";
+import TodoModel from '../models/todo';
 import Logger from '../loaders/Logger';
 
 export const addTodo = async ({ name, description }: { name: string; description: string; })
   : Promise<{ name: string, id: string }> => {
   Logger.info(`Adding Todo ${name}`);
-  const newTodo = new TodoModel({ name, description });
-  return newTodo.save().then((todo) => {
+  const newTodo = new TodoModel({ name, description, isComplete: false });
+  return newTodo.save().then((todo: any) => {
     Logger.info(`Todo ${name} was successfully added with id ${todo.id}`);
     return { name: todo.name, id: todo.id };
   }).catch((error: Error) => {
@@ -22,10 +22,12 @@ export const removeTodo = async (id: string) => {
   });
 };
 
-export const updateTodo = async ({ id, name, description }
-  : { id: string, name: string, description: string }) => {
+export const updateTodo = async ({
+  id, name, description, isComplete,
+}
+  : { id: string, name: string, description: string, isComplete: boolean }) => {
   Logger.info(`Updating Todo ${id}`);
-  TodoModel.findByIdAndUpdate(id, { name, description }).then((error: Error) => {
+  TodoModel.findByIdAndUpdate(id, { name, description, isComplete }).then((error: Error) => {
     if (error) return Logger.error(error);
     return Logger.info(`Updated ${id} Successfully`);
   });
