@@ -8,7 +8,7 @@ export default class PostgresAdapter {
     this.pool = pool;
   }
 
-  public getById(id: string) {
+  public async getById(id: string) {
     this.pool
       .connect()
       .then((client: Client) => client
@@ -16,14 +16,33 @@ export default class PostgresAdapter {
         .then((res) => {
           client.release();
           Logger.info(`Queried ${res.rows[0]}`);
+          return res;
         })
         .catch((err: Error) => {
           client.release();
           Logger.error(err.stack);
+          throw err;
         }));
   }
 
-  public removeById(id: string) {
+  public async getAll() {
+    this.pool
+      .connect()
+      .then((client: Client) => client
+        .query('SELECT * FROM todos')
+        .then((res) => {
+          client.release();
+          Logger.info(`Queried ${res.rows}`);
+          return res;
+        })
+        .catch((error: Error) => {
+          client.release();
+          Logger.error(error.stack);
+          throw error;
+        }));
+  }
+
+  public async removeById(id: string) {
     this.pool
       .connect()
       .then((client: Client) => client
@@ -34,10 +53,11 @@ export default class PostgresAdapter {
         }).catch((error: Error) => {
           client.release();
           Logger.error(error);
+          throw error;
         }));
   }
 
-  public updateById(id: string, name: string, description: string, isComplete: boolean) {
+  public async updateById(id: string, name: string, description: string, isComplete: boolean) {
     this.pool
       .connect()
       .then((client: Client) => client
@@ -49,10 +69,11 @@ export default class PostgresAdapter {
         .catch((error: Error) => {
           client.release();
           Logger.error(error);
+          throw error;
         }));
   }
 
-  public add(id: string, name: string, description: string, isComplete: boolean) {
+  public async add(id: string, name: string, description: string, isComplete: boolean) {
     this.pool
       .connect()
       .then((client: Client) => client
@@ -64,6 +85,7 @@ export default class PostgresAdapter {
         .catch((error: Error) => {
           client.release();
           Logger.error(error);
+          throw error;
         }));
   }
 }

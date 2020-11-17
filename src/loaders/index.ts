@@ -9,6 +9,4 @@ export default async ({ app }: { app: express.Application }) => {
 
   await expressLoader({ app });
   Logger.info('Express Loaded');
-
-  Logger.info('All loaders finished');
 };
