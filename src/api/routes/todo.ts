@@ -1,25 +1,25 @@
 import {
   Router, Request, Response, NextFunction,
 } from 'express';
-import { celebrate, Joi } from 'celebrate';
-import { addTodo, removeTodo, updateTodo } from '../../services/todoService';
+import { celebrate, Joi, errors } from 'celebrate';
+import TodoService from '../../services/todoService';
+import TodoModel from '../../models/todo';
 
+const todoService = new TodoService(TodoModel);
 const route = Router();
 export default (app: Router) => {
   app.use('/todo', route);
-
   route.post(
     '/',
     celebrate({
-      body: Joi.object({
+      body: Joi.object().keys({
         name: Joi.string().required(),
-        id: Joi.string().required(),
         description: Joi.string(),
       }),
     }),
     (req: Request, res: Response, next: NextFunction) => {
       try {
-        addTodo({ name: req.body.name, description: req.body.description || '' }).then(
+        todoService.addTodo({ name: req.body.name, description: req.body.description || '' }).then(
           (response) => {
             res.status(200).send(response);
           },
@@ -38,7 +38,7 @@ export default (app: Router) => {
     }),
     (req: Request, res: Response, next: NextFunction) => {
       try {
-        removeTodo(req.body.id).then(() => res.status(200).send());
+        todoService.removeTodo(req.body.id).then(() => res.status(200).send());
       } catch (e) {
         return next(e);
       }
@@ -50,23 +50,18 @@ export default (app: Router) => {
         name: Joi.string().required(),
         id: Joi.string().required(),
         description: Joi.string(),
+        isComplete: Joi.boolean(),
       }),
     }), (req: Request, res: Response, next: NextFunction) => {
       try {
-        updateTodo({ id: req.body.id, name: req.body.name, description: req.body.description || '' })
+        todoService.updateTodo({
+          id: req.body.id, name: req.body.name, description: req.body.description || '', isComplete: req.body.isComplete,
+        })
           .then(() => res.status(200).send());
       } catch (e) {
         return next(e);
       }
     });
 
-  route.get('/:id', (req: Request, res: Response) => {
-    res.send('hi');
-    console.log('yahoo');
-  });
-
-  route.get('/', (req: Request, res: Response) => {
-    res.send('hi');
-    console.log('yahoo');
-  });
+  route.use(errors());
 };
