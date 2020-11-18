@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import routes from '../api';
 
-export default ({ app }: { app: express.Application }) => {
+export default ({ app, service }: { app: express.Application, service: any }) => {
   app.get('/status', (req, res) => { res.status(200).end(); });
   app.head('/status', (req, res) => { res.status(200).end(); });
 
@@ -21,7 +21,7 @@ export default ({ app }: { app: express.Application }) => {
     res.status(200).end();
   });
 
-  app.use(routes());
+  app.use(routes(service));
 
   return app;
 };

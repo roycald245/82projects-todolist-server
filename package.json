@@ -6,7 +6,7 @@
   "scripts": {
     "tsc": "tsc",
     "dev": "ts-node-dev --respawn --transpile-only --watch src,db src/index.ts",
-    "prod": "tsc && node ./build/index.js"
+    "prod": "typescript && node ./build/index.js"
   },
   "repository": {
     "type": "git",

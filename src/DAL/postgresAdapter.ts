@@ -9,7 +9,7 @@ export default class PostgresAdapter {
   }
 
   public async getById(id: string) {
-    this.pool
+    return this.pool
       .connect()
       .then((client: Client) => client
         .query('SELECT * FROM todos WHERE id = $1', [id])
@@ -25,15 +25,15 @@ export default class PostgresAdapter {
         }));
   }
 
-  public async getAll() {
-    this.pool
+  public async getAll(): Promise<Array<Object>> {
+    return this.pool
       .connect()
       .then((client: Client) => client
         .query('SELECT * FROM todos')
         .then((res) => {
           client.release();
-          Logger.info(`Queried ${res.rows}`);
-          return res;
+          Logger.info(`Queried ${res.rows.length} rows from PostgeSQL`);
+          return res.rows;
         })
         .catch((error: Error) => {
           client.release();
@@ -49,7 +49,7 @@ export default class PostgresAdapter {
         .query('DELETE FROM todos WHERE id = $1', [id])
         .then((res) => {
           client.release();
-          Logger.info(`Deleted ${id} successfully`);
+          Logger.info(`Deleted ${res.rowCount} rows`);
         }).catch((error: Error) => {
           client.release();
           Logger.error(error);

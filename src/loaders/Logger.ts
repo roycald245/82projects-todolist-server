@@ -10,12 +10,12 @@ if (process.env.NODE_ENV === 'development') {
 } else {
   transports.push(
     new winston.transports.File({ filename: `${appRoot}/logs/error.log`, level: 'error' }),
-    new winston.transports.File({ filename: `${appRoot}/logs/combined.log`, level: config.logs.level }),
+    new winston.transports.File({ filename: `${appRoot}/logs/combined.log`, level: config.logLevel || 'info' }),
   );
 }
 
 const LoggerInstance = winston.createLogger({
-  level: config.logs.level,
+  level: config.logLevel || 'info',
   format: winston.format.combine(
     winston.format.timestamp({
       format: 'YYYY-MM-DD HH:mm:ss',

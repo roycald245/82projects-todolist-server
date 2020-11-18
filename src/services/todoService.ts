@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import Logger from '../loaders/Logger';
 import PostgresAdapter from '../DAL/postgresAdapter';
 
@@ -13,9 +13,27 @@ export default class TodoService {
     this.pgAdapter = pgAdapter;
   }
 
+  public async getTodos()
+    : Promise<Object[]> {
+    Logger.info('Getting todos');
+    let postgresRes: Object[] = [];
+    try {
+      postgresRes = await this.pgAdapter.getAll();
+      if (postgresRes.length !== 0) {
+        Logger.info('Got todos from PostgreSQL');
+        return postgresRes;
+      }
+      Logger.info('Getting todos from mongoDB');
+      return await this.TodoModel.find({});
+    } catch (e) {
+      Logger.error(e);
+    }
+    return postgresRes;
+  }
+
   public async addTodo({ name, description }: { name: string; description: string; })
     : Promise<{ name: string, id: string }> {
-    Logger.info(`Inserting Todo ${name}`);
+    Logger.info(`Inserting Todo to postgres ${name}`);
     let postgesStatus = true;
     // Generate shared uuid for both databases
     const id = uuidv4();
@@ -28,10 +46,10 @@ export default class TodoService {
     }
     // Add to mongoDB
     const newTodo = new this.TodoModel({
-      id, name, description, isComplete: false,
+      _id: id, name, description, isComplete: false,
     });
     return newTodo.save().then((todo: any) => {
-      Logger.info(`Todo ${name} was successfully added with id ${todo.id}`);
+      Logger.info(`Todo ${name} was successfully added to mongo with id ${todo.id}`);
       return { name: todo.name, id: todo.id };
     }).catch((error: Error) => {
       Logger.error(error);
@@ -42,14 +60,15 @@ export default class TodoService {
 
   public async removeTodo(id: string) {
     let postgresStatus = true;
-    Logger.info(`Removing Todo with id:${id}`);
+    Logger.info(`Removing Todo with id:${id} from postgres`);
     try {
       await this.pgAdapter.removeById(id);
+      Logger.info(`Removed Todo with id:${id} successfuly from postgres`);
     } catch (e) {
       Logger.error(e);
       postgresStatus = false;
     }
-    this.TodoModel.findOneAndDelete({ _id: id }).then(() => Logger.info(`Removed Todo with id:${id} successfuly`))
+    this.TodoModel.findOneAndDelete({ _id: id }).then(() => Logger.info(`Removed Todo with id:${id} successfuly from mongo`))
       .catch((error: Error) => {
         Logger.error(error);
         if (!postgresStatus) throw new Error('Failed to delete in both databases');
@@ -60,7 +79,7 @@ export default class TodoService {
     id, name, description, isComplete,
   }
     : { id: string, name: string, description: string, isComplete: boolean }) {
-    Logger.info(`Updating Todo ${id}`);
+    Logger.info(`Updating Todo ${id} in postgres`);
     let postgresStatus = true;
 
     try {
@@ -70,7 +89,7 @@ export default class TodoService {
       postgresStatus = false;
     }
 
-    this.TodoModel.findByIdAndUpdate(id, { name, description, isComplete }).then(() => Logger.info(`Updated ${id} Successfully`))
+    this.TodoModel.findByIdAndUpdate(id, { name, description, isComplete }).then(() => Logger.info(`Updated ${id} Successfully in mongo`))
       .catch((error: Error) => {
         Logger.error(error);
         if (!postgresStatus) throw new Error('Failed to update in both databases');

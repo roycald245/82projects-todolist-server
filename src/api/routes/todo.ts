@@ -3,12 +3,23 @@ import {
 } from 'express';
 import { celebrate, Joi, errors } from 'celebrate';
 import TodoService from '../../services/todoService';
-import TodoModel from '../../models/todo';
 
-const todoService = new TodoService(TodoModel);
 const route = Router();
-export default (app: Router) => {
+export default (app: Router, todoService: TodoService) => {
   app.use('/todo', route);
+
+  route.get(
+    '/',
+    (req: Request, res: Response, next: NextFunction) => {
+      todoService.getTodos().then(
+        (response) => {
+          console.log('res', response);
+          res.status(200).send(response);
+        },
+      ).catch((e) => next(e));
+    },
+  );
+
   route.post(
     '/',
     celebrate({
@@ -18,15 +29,12 @@ export default (app: Router) => {
       }),
     }),
     (req: Request, res: Response, next: NextFunction) => {
-      try {
-        todoService.addTodo({ name: req.body.name, description: req.body.description || '' }).then(
-          (response) => {
-            res.status(200).send(response);
-          },
-        );
-      } catch (e) {
-        return next(e);
-      }
+      todoService.addTodo({ name: req.body.name, description: req.body.description || '' }).then(
+        (response) => {
+          console.log('res', response);
+          res.status(200).send(response);
+        },
+      ).catch((e) => next(e));
     },
   );
 

@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import todo from './routes/todo';
 
-export default () => {
+export default (service) => {
   const app = Router();
-  todo(app);
+  todo(app, service);
   return app;
 };

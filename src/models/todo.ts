@@ -3,6 +3,9 @@ import { ITodo } from '../interfaces/ITodo';
 
 const Todo = new mongoose.Schema(
   {
+    _id: {
+      type: String,
+    },
     name: {
       type: String,
       required: [true, 'Please enter a full name'],

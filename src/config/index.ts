@@ -14,7 +14,5 @@ export default {
 
   pgConnectionString: process.env.PG_CONN_STR,
 
-  logs: {
-    level: process.env.LOG_LEVEL || 'info',
-  },
+  logLevel: process.env.LOG_LEVEL || 'info',
 };
