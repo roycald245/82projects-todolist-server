@@ -5,10 +5,10 @@ import morgan from 'morgan';
 import routes from '../api';
 
 export default ({ app, service }: { app: express.Application, service: any }) => {
+  app.use(cors());
   app.get('/status', (req, res) => { res.status(200).end(); });
   app.head('/status', (req, res) => { res.status(200).end(); });
 
-  app.use(cors());
   app.use(morgan('combined'));
   app.use(helmet());
   app.use(express.json());

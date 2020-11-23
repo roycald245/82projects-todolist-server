@@ -29,7 +29,7 @@ export default class PostgresAdapter {
     return this.pool
       .connect()
       .then((client: Client) => client
-        .query('SELECT * FROM todos')
+        .query('SELECT * FROM todos order by "isComplete" asc')
         .then((res) => {
           client.release();
           Logger.info(`Queried ${res.rows.length} rows from PostgeSQL`);
@@ -61,7 +61,7 @@ export default class PostgresAdapter {
     this.pool
       .connect()
       .then((client: Client) => client
-        .query('UPDATE todos SET name=$1, description=$2, isComplete=$3 WHERE id=$4', [name, description, isComplete, id])
+        .query('UPDATE todos SET name=$1, description=$2, "isComplete"=$3 WHERE id=$4', [name, description, isComplete, id])
         .then((res) => {
           client.release();
           Logger.info(`Updated ${id} successfully`);
@@ -77,7 +77,7 @@ export default class PostgresAdapter {
     this.pool
       .connect()
       .then((client: Client) => client
-        .query('INSERT INTO todos(id,name,description,isComplete) VALUES ($1, $2, $3, $4)', [id, name, description, isComplete])
+        .query('INSERT INTO todos(id,name,description,"isComplete") VALUES ($1, $2, $3, $4)', [id, name, description, isComplete])
         .then((res) => {
           client.release();
           Logger.info(`Inserted ${id} successfully`);
