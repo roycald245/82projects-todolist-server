@@ -27,10 +27,10 @@ const LoggerInstance = winston.createLogger({
   transports,
 });
 
-LoggerInstance.stream = {
-  write(message: string) {
-    LoggerInstance.info(message);
-  },
-};
+// LoggerInstance.stream = {
+//   write(message: string) {
+//     LoggerInstance.info(message);
+//   },
+// };
 
 export default LoggerInstance;

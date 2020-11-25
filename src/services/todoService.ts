@@ -1,39 +1,41 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Model, Types } from 'mongoose';
-import Logger from '../loaders/Logger';
+import { Service, Inject } from 'typedi';
+import { Logger } from 'winston';
+import TodoModel from '../models/todo';
 import PostgresAdapter from '../DAL/postgresAdapter';
 
+@Service()
 export default class TodoService {
-  private pgAdapter: PostgresAdapter;
+  @Inject('todoModel')
+  Todo!: typeof TodoModel;
 
-  private TodoModel: Model;
+  @Inject('postgresAdapter')
+  pgAdapter!: PostgresAdapter;
 
-  constructor(model: Model, pgAdapter: PostgresAdapter) {
-    this.TodoModel = model;
-    this.pgAdapter = pgAdapter;
-  }
+  @Inject('logger')
+  logger!: Logger;
 
   public async getTodos()
     : Promise<Object[]> {
-    Logger.info('Getting todos');
+    this.logger.info('Getting todos');
     let postgresRes: Object[] = [];
     try {
       postgresRes = await this.pgAdapter.getAll();
       if (postgresRes.length !== 0) {
-        Logger.info('Got todos from PostgreSQL');
+        this.logger.info('Got todos from PostgreSQL');
         return postgresRes;
       }
-      Logger.info('Getting todos from mongoDB');
-      return await this.TodoModel.find({});
+      this.logger.info('Getting todos from mongoDB');
+      return await this.Todo.find({});
     } catch (e) {
-      Logger.error(e);
+      this.logger.error(e);
     }
     return postgresRes;
   }
 
   public async addTodo({ name, description }: { name: string; description: string; })
     : Promise<{ name: string, id: string }> {
-    Logger.info(`Inserting Todo to postgres ${name}`);
+    this.logger.info(`Inserting Todo to postgres ${name}`);
     let postgesStatus = true;
     // Generate shared uuid for both databases
     const id = uuidv4();
@@ -41,36 +43,37 @@ export default class TodoService {
     try {
       await this.pgAdapter.add(id, name, description, false);
     } catch (e) {
-      Logger.error(`Failed to insert to postgres: ${e}`);
+      this.logger.error(`Failed to insert to postgres: ${e}`);
       postgesStatus = false;
     }
     // Add to mongoDB
-    const newTodo = new this.TodoModel({
+    const newTodo = new this.Todo({
       _id: id, name, description, isComplete: false,
     });
     return newTodo.save().then((todo: any) => {
-      Logger.info(`Todo ${name} was successfully added to mongo with id ${todo.id}`);
+      this.logger.info(`Todo ${name} was successfully added to mongo with id ${todo.id}`);
       return { name: todo.name, id: todo.id };
     }).catch((error: Error) => {
-      Logger.error(error);
+      this.logger.error(error);
       // if both databases fail throw error
       if (!postgesStatus) throw new Error('Failed to add to mongo and to postgres');
+      return { name: '', id: '' };
     });
   }
 
   public async removeTodo(id: string) {
     let postgresStatus = true;
-    Logger.info(`Removing Todo with id:${id} from postgres`);
+    this.logger.info(`Removing Todo with id:${id} from postgres`);
     try {
       await this.pgAdapter.removeById(id);
-      Logger.info(`Removed Todo with id:${id} successfuly from postgres`);
+      this.logger.info(`Removed Todo with id:${id} successfuly from postgres`);
     } catch (e) {
-      Logger.error(e);
+      this.logger.error(e);
       postgresStatus = false;
     }
-    this.TodoModel.findOneAndDelete({ _id: id }).then(() => Logger.info(`Removed Todo with id:${id} successfuly from mongo`))
+    this.Todo.findOneAndDelete({ _id: id }).then(() => this.logger.info(`Removed Todo with id:${id} successfuly from mongo`))
       .catch((error: Error) => {
-        Logger.error(error);
+        this.logger.error(error);
         if (!postgresStatus) throw new Error('Failed to delete in both databases');
       });
   }
@@ -79,19 +82,19 @@ export default class TodoService {
     id, name, description, isComplete,
   }
     : { id: string, name: string, description: string, isComplete: boolean }) {
-    Logger.info(`Updating Todo ${id} in postgres`);
+    this.logger.info(`Updating Todo ${id} in postgres`);
     let postgresStatus = true;
 
     try {
       await this.pgAdapter.updateById(id, name, description, isComplete);
     } catch (e) {
-      Logger.error(e);
+      this.logger.error(e);
       postgresStatus = false;
     }
 
-    this.TodoModel.findByIdAndUpdate(id, { name, description, isComplete }).then(() => Logger.info(`Updated ${id} Successfully in mongo`))
+    this.Todo.findByIdAndUpdate(id, { name, description, isComplete }).then(() => this.logger.info(`Updated ${id} Successfully in mongo`))
       .catch((error: Error) => {
-        Logger.error(error);
+        this.logger.error(error);
         if (!postgresStatus) throw new Error('Failed to update in both databases');
       });
   }

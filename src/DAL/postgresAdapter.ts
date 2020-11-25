@@ -1,4 +1,4 @@
-import { Pool, Client } from 'pg';
+import { Pool, PoolClient } from 'pg';
 import Logger from '../loaders/Logger';
 
 export default class PostgresAdapter {
@@ -11,7 +11,7 @@ export default class PostgresAdapter {
   public async getById(id: string) {
     return this.pool
       .connect()
-      .then((client: Client) => client
+      .then((client: PoolClient) => client
         .query('SELECT * FROM todos WHERE id = $1', [id])
         .then((res) => {
           client.release();
@@ -28,7 +28,7 @@ export default class PostgresAdapter {
   public async getAll(): Promise<Array<Object>> {
     return this.pool
       .connect()
-      .then((client: Client) => client
+      .then((client: PoolClient) => client
         .query('SELECT * FROM todos order by "isComplete" asc')
         .then((res) => {
           client.release();
@@ -45,7 +45,7 @@ export default class PostgresAdapter {
   public async removeById(id: string) {
     this.pool
       .connect()
-      .then((client: Client) => client
+      .then((client: PoolClient) => client
         .query('DELETE FROM todos WHERE id = $1', [id])
         .then((res) => {
           client.release();
@@ -60,9 +60,9 @@ export default class PostgresAdapter {
   public async updateById(id: string, name: string, description: string, isComplete: boolean) {
     this.pool
       .connect()
-      .then((client: Client) => client
+      .then((client: PoolClient) => client
         .query('UPDATE todos SET name=$1, description=$2, "isComplete"=$3 WHERE id=$4', [name, description, isComplete, id])
-        .then((res) => {
+        .then(() => {
           client.release();
           Logger.info(`Updated ${id} successfully`);
         })
@@ -76,9 +76,9 @@ export default class PostgresAdapter {
   public async add(id: string, name: string, description: string, isComplete: boolean) {
     this.pool
       .connect()
-      .then((client: Client) => client
+      .then((client: PoolClient) => client
         .query('INSERT INTO todos(id,name,description,"isComplete") VALUES ($1, $2, $3, $4)', [id, name, description, isComplete])
-        .then((res) => {
+        .then(() => {
           client.release();
           Logger.info(`Inserted ${id} successfully`);
         })
